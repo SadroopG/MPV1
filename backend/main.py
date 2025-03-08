@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
@@ -12,6 +13,14 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ['FFMPEG_BINARY'] = r'C:\ffmpeg\ffmpeg_2025\bin'
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Allow requests from your React frontend
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 UPLOAD_DIR = "uploads/"
 OUTPUT_DIR = "static/output/"
@@ -37,7 +46,11 @@ async def upload_audio(file: UploadFile = File(...)):
     output_folder = os.path.join(OUTPUT_DIR, os.path.splitext(file.filename)[0])
     output_files = [f"/static/output/{os.path.splitext(file.filename)[0]}/{f}" for f in os.listdir(output_folder) if f.endswith(".wav")]
     
+    #Logging 
+    print("Generated output files:", output_files)
+    
     return {"message": "File processed", "download_files": output_files}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
