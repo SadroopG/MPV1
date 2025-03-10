@@ -1,56 +1,105 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-import uvicorn
-import os
-import shutil
+from fastapi.staticfiles import StaticFiles  # Add this import
 from spleeter.separator import Separator
+import os
+from pathlib import Path
+import atexit
+from multiprocessing import Pool, cpu_count
 
-# Disable GPU
+# Disable GPU if not available
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-# Specify the path to FFmpeg binary
-os.environ['FFMPEG_BINARY'] = r'C:\ffmpeg\ffmpeg_2025\bin'
-
+# Initialize FastAPI app
 app = FastAPI()
 
+# Serve static files
+app.mount("/static", StaticFiles(directory="static"), name="static")  # Add this line
+
+# Enable CORS (Cross-Origin Resource Sharing)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Allow requests from your React frontend
+    allow_origins=["*"],  # Allow all origins (update this for production)
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-UPLOAD_DIR = "uploads/"
-OUTPUT_DIR = "static/output/"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Initialize Spleeter separator (2 stems: vocals and accompaniment)
+separator = Separator("spleeter:2stems")
+
+# Define the output directory for separated audio files
+OUTPUT_DIR = "static/output"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-separator = Separator('spleeter:2stems')  # 2-stem model
+# Create a multiprocessing pool
+pool = Pool(processes=cpu_count())
 
-# Mount static files to serve processed audio
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Cleanup function to terminate the pool
+def cleanup():
+    print("Cleaning up multiprocessing pool...")
+    pool.close()
+    pool.join()
+
+# Register the cleanup function
+atexit.register(cleanup)
 
 @app.post("/upload/")
-async def upload_audio(file: UploadFile = File(...)):
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
-    
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    
-    # Process the audio file
-    separator.separate_to_file(file_path, OUTPUT_DIR)
-    
-    # Get the output files
-    output_folder = os.path.join(OUTPUT_DIR, os.path.splitext(file.filename)[0])
-    output_files = [f"/static/output/{os.path.splitext(file.filename)[0]}/{f}" for f in os.listdir(output_folder) if f.endswith(".wav")]
-    
-    #Logging 
-    print("Generated output files:", output_files)
-    
-    return {"message": "File processed", "download_files": output_files}
+async def upload(file: UploadFile = File(...)):
+    try:
+        # Sanitize filename to prevent issues
+        safe_filename = file.filename.replace(" ", "_")  # Replace spaces with underscores
+        file_path = os.path.join(OUTPUT_DIR, safe_filename)
+        
+        # Save the uploaded file temporarily
+        with open(file_path, "wb") as buffer:
+            buffer.write(await file.read())
+
+        # Separate the audio using Spleeter
+        separator.separate_to_file(file_path, OUTPUT_DIR)
+
+        # Generate the output file paths
+        base_name = Path(safe_filename).stem  # Use sanitized filename
+        output_folder = os.path.join(OUTPUT_DIR, base_name)
+        
+        # Ensure output folder exists before returning URLs
+        if not os.path.exists(output_folder):
+            raise HTTPException(status_code=500, detail="Audio separation failed, output not found.")
+        
+        # Ensure the files exist
+        if not os.path.exists(os.path.join(output_folder, "vocals.wav")) or not os.path.exists(os.path.join(output_folder, "accompaniment.wav")):
+            raise HTTPException(status_code=500, detail="Audio separation failed, output files not found.")
+        
+        # Return the correct static file paths
+        output_files = {
+    "vocals": f"/static/output/{base_name}/vocals.wav".replace("\\", "/"),
+    "accompaniment": f"/static/output/{base_name}/accompaniment.wav".replace("\\", "/"),
+}
 
 
+        # Return the response
+        return JSONResponse(
+            content={
+                "status": "success",
+                "message": "Audio separation completed successfully",
+                "output_files": output_files,
+            }
+        )
+    except Exception as e:
+        # Handle errors and return a 500 status code
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred during audio separation: {str(e)}",
+        )
+
+# Run the application
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import uvicorn
+    try:
+        uvicorn.run(app, host="0.0.0.0", port=8000)
+    except KeyboardInterrupt:
+        print("Server stopped by user")
+    finally:
+        print("Cleaning up resources...")
+        cleanup()  # Call the cleanup function
