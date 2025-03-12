@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/music-splitter/static/css/main.50e4aa00.css",
+    "main.js": "/music-splitter/static/js/main.d97de1e3.js",
+    "index.html": "/music-splitter/index.html",
+    "main.50e4aa00.css.map": "/music-splitter/static/css/main.50e4aa00.css.map",
+    "main.d97de1e3.js.map": "/music-splitter/static/js/main.d97de1e3.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.50e4aa00.css",
+    "static/js/main.d97de1e3.js"
+  ]
+}

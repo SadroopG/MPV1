@@ -1,0 +1,226 @@
+/* General Styles */
+.App {
+  text-align: center;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  color: white;
+  font-family: 'Arial', sans-serif;
+  padding: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Dynamic Background Animation */
+.App::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 10%, transparent 10.01%);
+  background-size: 20px 20px;
+  animation: moveBackground 10s linear infinite;
+  z-index: -1;
+}
+
+@keyframes moveBackground {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(20px, 20px);
+  }
+}
+
+/* Header Styles */
+.App-header {
+  background: transparent;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+}
+
+/* Logo Animation */
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* Link Styles */
+.App-link {
+  color: #61dafb;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.App-link:hover {
+  color: #21a1f1;
+}
+
+/* File Input and Button Styles */
+input[type="file"] {
+  display: none; /* Hide the default file input */
+}
+
+.custom-file-upload {
+  border: 2px solid #61dafb;
+  color: #61dafb;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+  font-size: 16px;
+  background: rgba(97, 218, 251, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.custom-file-upload:hover {
+  background: #61dafb;
+  color: #0f0c29;
+}
+
+button {
+  background: #61dafb;
+  color: #0f0c29;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background 0.3s ease, transform 0.3s ease;
+  font-size: 16px;
+  backdrop-filter: blur(10px);
+}
+
+button:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background: #21a1f1;
+  transform: scale(1.05);
+}
+
+/* Loading Spinner */
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #61dafb;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Download Buttons */
+.download-buttons {
+  margin-top: 20px;
+}
+
+.download-buttons button {
+  background: #21a1f1;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.download-buttons button:hover {
+  background: #61dafb;
+  transform: scale(1.05);
+}
+
+/* Error Message */
+.error-message {
+  color: #ff6b6b;
+  margin-top: 10px;
+}
+
+/* Galaxy Background Effect */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 800 800'%3E%3Cg %3E%3Ccircle fill='%230f0c29' cx='400' cy='400' r='600'/%3E%3Ccircle fill='%2318163a' cx='400' cy='400' r='500'/%3E%3Ccircle fill='%2322204b' cx='400' cy='400' r='400'/%3E%3Ccircle fill='%232d2a5c' cx='400' cy='400' r='300'/%3E%3Ccircle fill='%2338346d' cx='400' cy='400' r='200'/%3E%3Ccircle fill='%23433e7e' cx='400' cy='400' r='100'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: cover;
+  z-index: -1;
+  opacity: 0.5;
+}
+
+/* Futuristic Glow Effect */
+.glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(97, 218, 251, 0.5), transparent 70%);
+  transform: translate(-50%, -50%);
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+/* Card Styles for Download Links */
+.download-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 10px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.download-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .App-header {
+    padding: 20px;
+  }
+
+  .custom-file-upload, button {
+    width: 100%;
+    margin: 10px 0;
+  }
+}
